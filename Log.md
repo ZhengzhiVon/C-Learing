@@ -23,3 +23,7 @@
 - **20230425 C11类型推导**
 
   摘要：C11中auto和decltype的概念和应用。
+
+- **20230426 String中的length()和size()**
+
+  摘要：C++中的length()和size()方法基本一致，不过size()还可以求容器的长度,例如vector。
