@@ -1,6 +1,7 @@
 #include<iostream>
 #include <algorithm>
 #include <cmath>
+#include<vector>
 using namespace std;
 
 //lambda表达式
@@ -130,6 +131,7 @@ void func(int x,int y)
     obja.SetValue(100);//引用捕获，修改了lambda表达式fc中的obja的值；若改成值引用[obja]，则会创建一个副本，原值不会被修改
     fc();
 }
+/*
 int main()
 {
     funa(10,20);//输出19，40，但是只构造一个Int对象
@@ -141,5 +143,88 @@ int main()
     int a=0;
     //auto f1=[=] {return a++;};//error 不能修改按值捕获的外部变量
     auto f2=[=]() mutable {return a++;};//ok
+    return 0;
+}
+*/
+
+typedef void (*Ptr)(int);//定义一个函数指针类型Ptr，指向一个以int为参数，返回为void的函数
+
+int main()
+{
+    int a=10,b=20;
+    auto f1=[](int a)->void {cout<<a<<endl;};
+    auto f2=[](int x)->void {cout<<x+10<<endl;};
+    //auto f3=[=]()->int {return a++;};           //error,因为f3没有使用mutable修饰符，不能修改捕获的变量
+    auto f4=[=]()mutable->int {return a++;};    //ok
+    auto f5(f1);    //ok
+    //f1=f2;  //error,//将f2赋值给f1，产生编译错误，因为f1和f2的类型不同
+    Ptr p1=f1;  //ok
+    auto f6=[=](int x)->void {cout<<"hello"<<endl;};
+    //Ptr p2=f4;  //error,将f4赋值给函数指针p2，产生编译错误，因为f4的类型和Ptr不匹配
+}
+
+int main1()
+{
+    using func_t= int (*)(int);
+    func_t f=[](int a)->int {return a;};
+    int x=f(123);                   //123
+    cout<<typeid(f).name()<<endl;   //int(__cdecl*)(int);
+    return 0;
+}
+
+//仿函数&lambda表达式
+class StringAppend {
+public:
+    //接受一个字符串作为构造函数参数
+    explicit StringAppend(const string& str) : ss(str){}
+    void operator() (const string& str) const {
+         cout << str << ' ' << ss << endl;
+    }//将重载的函数调用运算符中将传入的字符串和构造函数中的字符串拼接起来输出
+private:
+    const string ss;
+};
+ 
+int main2() {
+    StringAppend myFunctor2("and world!");
+    myFunctor2("Hello");//输出Hello and world!
+    return 0;
+}
+
+//设计仿函数，调用for_each函数将vector中的偶数打印出来
+class CoountEven
+{
+    int &count_;
+public:
+    CoountEven(int &count):count_(count) {}//构造函数，初始化计数器
+    void operator()(int val)    //重载函数调用符
+    {
+        if(!(val & 1))  //val%2==0
+        {
+            ++count_;
+        }
+    }
+};
+
+int main4()
+{
+    std::vector<int> v={1,2,3,4,5,6};
+    int even_count=0;//偶数计数器
+    for_each(v.begin(), v.end(), CoountEven(even_count));//遍历v并统计偶数个数
+    cout<<"the number of even is "<<even_count<<even_count<<endl;
+    return 0;
+}
+
+//使用lambda表达式实现
+int main5()
+{
+    std::vector<int> v={1,2,3,4,5,6};
+    int even_count=0;
+    for_each(v.begin(), v.end(), [&even_count](int val){
+        if(val%2==0)
+        {
+            ++even_count;
+        }
+    });
+    std::cout<<"the number of even is "<<even_count<<std::endl;
     return 0;
 }
